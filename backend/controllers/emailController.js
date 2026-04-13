@@ -127,13 +127,15 @@ const getEmails = async (req, res) => {
     }
 
     // Log performance to Telemetry
-    await Telemetry.create({
-      userId,
-      operation: 'GET_EMAILS',
-      count: emails.length,
-      durationMs: dbDuration,
-      status: 'SUCCESS'
-    });
+    if (redisClient.isReady) {
+      await Telemetry.create({
+        userId,
+        operation: source === 'CACHE' ? 'GET_EMAILS (CACHE)' : 'GET_EMAILS (DB)',
+        count: emails.length,
+        durationMs: dbDuration,
+        status: 'SUCCESS'
+      });
+    }
 
     res.json({ emails, stats, dbDuration, source });
   } catch (error) {

@@ -142,13 +142,19 @@ const Dashboard = () => {
                     background: dataSource === 'CACHE' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)', 
                     padding: '2px 8px', 
                     borderRadius: '4px',
-                    fontWeight: dataSource === 'CACHE' ? 600 : 400,
+                    fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    border: dataSource === 'CACHE' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent'
                   }}>
-                    {dataSource === 'CACHE' ? '⚡ Redis Cache' : '📁 Database'}
+                    {dataSource === 'CACHE' ? `⚡ Redis (Fast): ${dbTime}ms` : `📁 Database (Standard): ${dbTime}ms`}
                   </span>
+                  {dataSource === 'CACHE' && (
+                    <span style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 600 }}>
+                      ~{(900 / dbTime).toFixed(1)}x Faster
+                    </span>
+                  )}
                 </div>
               )}
             </div>
