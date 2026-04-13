@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, AlertCircle } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { fetchAuthUrl } from '../services/api';
 
 const Login = () => {
