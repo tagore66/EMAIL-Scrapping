@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const { connectRedis } = require('./config/redisConfig');
 
 const authRoutes = require('./routes/authRoutes');
 const emailRoutes = require('./routes/emailRoutes');
@@ -9,8 +10,9 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
-// Connect to Database
+// Connect to Databases
 connectDB();
+connectRedis();
 
 // Middleware
 app.use(cors());

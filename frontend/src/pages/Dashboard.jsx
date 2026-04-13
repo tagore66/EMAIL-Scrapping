@@ -14,6 +14,7 @@ const Dashboard = () => {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [dbTime, setDbTime] = useState(0);
+  const [dataSource, setDataSource] = useState('DB');
   const userId = localStorage.getItem('userId');
 
   const fetchData = async () => {
@@ -23,6 +24,7 @@ const Dashboard = () => {
       setFilteredEmails(emailsRes.data.emails);
       setStats(emailsRes.data.stats);
       setDbTime(emailsRes.data.dbDuration);
+      setDataSource(emailsRes.data.source || 'DB');
     } catch (error) {
       console.error('Fetch error:', error);
     } finally {
@@ -130,9 +132,24 @@ const Dashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
               {dbTime > 0 && (
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.03)', padding: '2px 8px', borderRadius: '4px' }}>
-                  Query took {dbTime}ms
-                </span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.03)', padding: '2px 8px', borderRadius: '4px' }}>
+                    Query: {dbTime}ms
+                  </span>
+                  <span style={{ 
+                    fontSize: '0.7rem', 
+                    color: dataSource === 'CACHE' ? '#10b981' : 'var(--text-muted)', 
+                    background: dataSource === 'CACHE' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)', 
+                    padding: '2px 8px', 
+                    borderRadius: '4px',
+                    fontWeight: dataSource === 'CACHE' ? 600 : 400,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    {dataSource === 'CACHE' ? '⚡ Redis Cache' : '📁 Database'}
+                  </span>
+                </div>
               )}
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>

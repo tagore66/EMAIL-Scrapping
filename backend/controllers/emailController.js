@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Telemetry = require('../models/Telemetry');
 const { getGmailClient, fetchEmailList, getEmailDetails } = require('../services/gmailService');
 const { cleanText, categorizeEmail, extractAmount } = require('../services/processingService');
+const { redisClient } = require('../config/redisConfig');
 
 const syncEmails = async (req, res) => {
   const { userId } = req.body;
@@ -45,6 +46,13 @@ const syncEmails = async (req, res) => {
       status: 'SUCCESS'
     });
 
+    // Invalidate Cache
+    try {
+      await redisClient.del(`stats:${userId}`);
+    } catch (err) {
+      console.error('Redis delete error:', err);
+    }
+
     res.json({ message: 'Sync complete', processedCount });
   } catch (error) {
     console.error('Sync error:', error);
@@ -62,25 +70,50 @@ const getEmails = async (req, res) => {
   const startTime = Date.now();
   try {
     const { userId } = req.query;
+    const cacheKey = `stats:${userId}`;
+
+    // 1. Try to fetch from Cache
+    let stats = null;
+    let source = 'DB';
+    
+    try {
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) {
+        stats = JSON.parse(cachedData);
+        source = 'CACHE';
+      }
+    } catch (err) {
+      console.error('Redis fetch error:', err);
+    }
+
     const emails = await Email.find({ userId }).sort({ date: -1 });
     const dbDuration = Date.now() - startTime;
     
-    // Calculate Analytics Summary
-    const stats = {
-      totalSpending: 0,
-      categoryBreakdown: {},
-      monthlyTrends: {},
-      topSenders: {}
-    };
+    // 2. If no cache, calculate stats
+    if (!stats) {
+      stats = {
+        totalSpending: 0,
+        categoryBreakdown: {},
+        monthlyTrends: {},
+        topSenders: {}
+      };
 
-    emails.forEach(email => {
-      stats.totalSpending += (email.amount || 0);
-      stats.categoryBreakdown[email.category] = (stats.categoryBreakdown[email.category] || 0) + (email.amount || 0);
-      const month = new Date(email.date).toLocaleString('default', { month: 'short', year: 'numeric' });
-      stats.monthlyTrends[month] = (stats.monthlyTrends[month] || 0) + (email.amount || 0);
-      const senderName = email.sender.split('<')[0].trim();
-      stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
-    });
+      emails.forEach(email => {
+        stats.totalSpending += (email.amount || 0);
+        stats.categoryBreakdown[email.category] = (stats.categoryBreakdown[email.category] || 0) + (email.amount || 0);
+        const month = new Date(email.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+        stats.monthlyTrends[month] = (stats.monthlyTrends[month] || 0) + (email.amount || 0);
+        const senderName = email.sender.split('<')[0].trim();
+        stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
+      });
+
+      // 3. Store in Cache for 1 hour
+      try {
+        await redisClient.setEx(cacheKey, 3600, JSON.stringify(stats));
+      } catch (err) {
+        console.error('Redis store error:', err);
+      }
+    }
 
     // Log performance to Telemetry
     await Telemetry.create({
@@ -91,7 +124,7 @@ const getEmails = async (req, res) => {
       status: 'SUCCESS'
     });
 
-    res.json({ emails, stats, dbDuration });
+    res.json({ emails, stats, dbDuration, source });
   } catch (error) {
     console.error('Fetch emails error:', error);
     res.status(500).json({ error: 'Failed to fetch emails' });
@@ -112,6 +145,13 @@ const reprocessEmails = async (req, res) => {
       email.amount = amount;
       await email.save();
       updatedCount++;
+    }
+
+    // Invalidate Cache
+    try {
+      await redisClient.del(`stats:${userId}`);
+    } catch (err) {
+      console.error('Redis delete error:', err);
     }
 
     res.json({ message: 'Reprocessing complete', updatedCount });
