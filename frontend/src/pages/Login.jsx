@@ -1,14 +1,18 @@
 import React from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, RefreshCcw } from 'lucide-react';
 import { fetchAuthUrl } from '../services/api';
 
 const Login = () => {
+  const [loading, setLoading] = React.useState(false);
+
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const { data } = await fetchAuthUrl();
       window.location.href = data.url;
     } catch (error) {
       console.error('Login error:', error);
+      setLoading(false);
     }
   };
 
@@ -43,11 +47,35 @@ const Login = () => {
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <button onClick={handleLogin} className="btn-primary" style={{ width: '100%', justifyContent: 'center', height: '48px' }}>
-            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style={{ width: '20px' }} />
-            Sign in with Google
+          <button 
+            onClick={handleLogin} 
+            disabled={loading}
+            className="btn-primary" 
+            style={{ width: '100%', justifyContent: 'center', height: '48px', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <RefreshCcw size={18} className="animate-spin" />
+                Connecting to Server...
+              </span>
+            ) : (
+              <>
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google" style={{ width: '20px' }} />
+                Sign in with Google
+              </>
+            )}
           </button>
         </div>
+
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .animate-spin {
+            animation: spin 1s linear infinite;
+          }
+        `}</style>
 
 
       </div>    </div>
