@@ -121,4 +121,16 @@ const reprocessEmails = async (req, res) => {
   }
 };
 
-module.exports = { syncEmails, getEmails, reprocessEmails };
+const getTelemetry = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const logs = await Telemetry.find({ userId })
+      .sort({ timestamp: -1 })
+      .limit(5);
+    res.json({ logs });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch telemetry' });
+  }
+};
+
+module.exports = { syncEmails, getEmails, reprocessEmails, getTelemetry };
