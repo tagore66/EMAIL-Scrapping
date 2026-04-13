@@ -11,10 +11,14 @@ redisClient.on('connect', () => console.log('Redis connected successfully'));
 const connectRedis = async () => {
   try {
     if (!redisClient.isOpen) {
-      await redisClient.connect();
+      // Force a 3-second timeout for the connection itself
+      await Promise.race([
+        redisClient.connect(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Connection Timeout')), 3000))
+      ]);
     }
   } catch (err) {
-    console.error('Failed to connect to Redis:', err);
+    console.error('Failed to connect to Redis within 3s:', err.message);
   }
 };
 
