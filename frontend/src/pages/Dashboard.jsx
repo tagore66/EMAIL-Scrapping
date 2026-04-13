@@ -90,7 +90,40 @@ const Dashboard = () => {
             </div>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Comprehensive log of extracted and processed mail data.</p>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+            {/* Performance Monitor Badge */}
+            {dbTime > 0 && (
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px', 
+                padding: '6px 16px', 
+                background: dataSource === 'CACHE' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${dataSource === 'CACHE' ? '#10b981' : 'var(--border)'}`,
+                borderRadius: '20px',
+                marginRight: '8px'
+              }}>
+                <div style={{ 
+                  width: '8px', height: '8px', borderRadius: '50%', 
+                  background: dataSource === 'CACHE' ? '#10b981' : 'var(--text-muted)',
+                  boxShadow: dataSource === 'CACHE' ? '0 0 10px #10b981' : 'none'
+                }} className={dataSource === 'CACHE' ? 'pulse-green' : ''} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>Retrieval Speed</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: dataSource === 'CACHE' ? '#10b981' : 'var(--text-main)' }}>
+                      {dbTime}ms
+                    </span>
+                    {dataSource === 'CACHE' && (
+                      <span style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 800 }}>
+                        {(900 / dbTime).toFixed(1)}x Faster
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button 
               onClick={handleReprocess} 
               disabled={syncing}
@@ -129,35 +162,7 @@ const Dashboard = () => {
 
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
-              {dbTime > 0 && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.03)', padding: '2px 8px', borderRadius: '4px' }}>
-                    Query: {dbTime}ms
-                  </span>
-                  <span style={{ 
-                    fontSize: '0.7rem', 
-                    color: dataSource === 'CACHE' ? '#10b981' : 'var(--text-muted)', 
-                    background: dataSource === 'CACHE' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)', 
-                    padding: '2px 8px', 
-                    borderRadius: '4px',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    border: dataSource === 'CACHE' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent'
-                  }}>
-                    {dataSource === 'CACHE' ? `⚡ Redis (Fast): ${dbTime}ms` : `📁 Database (Standard): ${dbTime}ms`}
-                  </span>
-                  {dataSource === 'CACHE' && (
-                    <span style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 600 }}>
-                      ~{(900 / dbTime).toFixed(1)}x Faster
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
             <div style={{ display: 'flex', gap: '12px' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                  <Filter size={14} />
@@ -254,6 +259,14 @@ const Dashboard = () => {
       )}
 
       <style>{`
+        @keyframes pulse-green {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .pulse-green {
+          animation: pulse-green 2s infinite;
+        }
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
