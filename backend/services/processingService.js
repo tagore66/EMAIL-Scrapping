@@ -29,20 +29,17 @@ const categorizeEmail = (subject, body) => {
 };
 
 const extractAmount = (text) => {
-  // Enhanced regex for amounts like ₹500, $100.00, Rs. 500, INR 1000, etc.
-  // Supports commas and decimals
-  const amountRegex = /(?:₹|\$|Rs\.|INR|€|£)\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi;
+  // Fixed regex: now correctly handles large numbers with or without commas
+  const amountRegex = /(?:₹|\$|Rs\.|INR|€|£)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/gi;
   const matches = [...text.matchAll(amountRegex)];
   
   if (matches.length > 0) {
-    // Try to find the amount that looks most like a total (often the largest or last one in simple contexts)
-    // For now, let's pick the largest value found to avoid picking up small tax amounts if possible
     const values = matches.map(m => parseFloat(m[1].replace(/,/g, '')));
     return Math.max(...values);
   }
   
   // Secondary check for "Amount: 500" or equivalent patterns
-  const textMatches = text.match(/(?:amount|total|paid|price|cost)\s*(?::|is)?\s*(?:₹|\$|Rs\.|INR)?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
+  const textMatches = text.match(/(?:amount|total|paid|price|cost)\s*(?::|is)?\s*(?:₹|\$|Rs\.|INR)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
   if (textMatches) {
     return parseFloat(textMatches[1].replace(/,/g, ''));
   }
