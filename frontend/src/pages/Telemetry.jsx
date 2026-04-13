@@ -9,8 +9,8 @@ const Telemetry = () => {
   useEffect(() => {
     const fetchTelemetry = async () => {
       try {
-        const { data } = await getTelemetry(userId);
-        setData(data);
+        const res = await getTelemetry(userId);
+        setData(res.data.logs || []);
       } catch (error) {
         console.error('Telemetry error:', error);
       }
