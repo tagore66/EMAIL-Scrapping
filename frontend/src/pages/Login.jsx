@@ -49,38 +49,7 @@ const Login = () => {
           </button>
         </div>
 
-        <div style={{
-          marginTop: '40px',
-          padding: '12px',
-          borderRadius: '8px',
-          backgroundColor: '#0f1420',
-          border: '1px solid var(--border)',
-          display: 'flex',
-          gap: '12px',
-          textAlign: 'left'
-        }}>
-          <AlertCircle size={18} color="var(--warning)" style={{ shrink: 0, marginTop: '2px' }} />
-          <div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4, margin: '0 0 8px 0' }}>
-              <span style={{ color: 'var(--warning)', fontWeight: 600 }}>Access Notice:</span> This site is in Testing Mode. Only authorized Gmail accounts can log in.
-            </p>
-            <a 
-              href="mailto:tagoreatreyapurapu@gmail.com?subject=Access Request for MailInsights" 
-              style={{ 
-                fontSize: '0.75rem', 
-                color: 'var(--primary)', 
-                textDecoration: 'none', 
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                borderBottom: '1px solid var(--primary)'
-              }}
-            >
-              Request Access →
-            </a>
-          </div>
-        </div>
+
       </div>    </div>
   );
 };
