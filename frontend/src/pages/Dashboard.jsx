@@ -4,8 +4,6 @@ import StatCard from '../components/StatCard';
 import EmailTable from '../components/EmailTable';
 import { DollarSign, Mail, PieChart, Activity, RefreshCcw, Database, Filter, Calendar } from 'lucide-react';
 import { getAnalytics, getEmails, syncEmails, reprocessEmails } from '../services/api';
-import CategoryPie from '../components/Charts/CategoryPie';
-import OverviewChart from '../components/Charts/OverviewChart';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -14,6 +12,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [filteredEmails, setFilteredEmails] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [selectedEmail, setSelectedEmail] = useState(null);
   const userId = localStorage.getItem('userId');
 
   const fetchData = async () => {
@@ -82,10 +81,10 @@ const Dashboard = () => {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.5px' }}>Spending Insights</h1>
-              <span style={{ fontSize: '0.65rem', background: 'var(--border)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>ANALYTICS_V2</span>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.5px' }}>Mail Intelligence</h1>
+              <span style={{ fontSize: '0.65rem', background: 'var(--border)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>READER_MODE</span>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Transforming raw mail data into structured financial intelligence.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Comprehensive log of extracted and processed mail data.</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button 
@@ -111,35 +110,18 @@ const Dashboard = () => {
 
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
           <StatCard 
-            title="Total Spending" 
+            title="Total Spending Detected" 
             value={`₹${stats?.totalSpending?.toLocaleString('en-IN') || '0'}`} 
             icon={<DollarSign size={20} />} 
             color="#38bdf8"
           />
           <StatCard 
-            title="Emails Analyzed" 
+            title="Total Emails" 
             value={emails.length} 
             icon={<Mail size={20} />} 
             color="#f87171"
           />
-          <StatCard 
-            title="Categories Identified" 
-            value={Object.keys(stats?.categoryBreakdown || {}).length} 
-            icon={<PieChart size={20} />} 
-            color="#22c55e"
-          />
         </section>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-          <div className="glass card" style={{ padding: '24px' }}>
-            <h3 style={{ marginBottom: '20px', fontSize: '1.1rem' }}>Spending Trends</h3>
-            <OverviewChart data={Object.entries(stats?.monthlyTrends || {}).map(([key, val]) => ({ _id: key, total: val }))} />
-          </div>
-          <div className="glass card" style={{ padding: '24px' }}>
-            <h3 style={{ marginBottom: '20px', fontSize: '1.1rem' }}>Category Distribution</h3>
-            <CategoryPie data={Object.entries(stats?.categoryBreakdown || {}).map(([key, val]) => ({ _id: key, value: val }))} />
-          </div>
-        </div>
 
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -163,9 +145,44 @@ const Dashboard = () => {
                </div>
             </div>
           </div>
-          <EmailTable emails={filteredEmails} />
+          <EmailTable emails={filteredEmails} onView={(email) => setSelectedEmail(email)} />
         </div>
       </main>
+
+      {/* Email View Modal */}
+      {selectedEmail && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '20px'
+        }}>
+          <div className="glass card" style={{
+            maxWidth: '800px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
+            padding: '32px', position: 'relative', border: '1px solid var(--border)'
+          }}>
+            <button 
+              onClick={() => setSelectedEmail(null)}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
+            >✕</button>
+            <div style={{ marginBottom: '24px' }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase' }}>{selectedEmail.category}</span>
+              <h2 style={{ fontSize: '1.4rem', marginTop: '4px' }}>{selectedEmail.subject}</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>From: {selectedEmail.sender}</p>
+            </div>
+            <div style={{ 
+              backgroundColor: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', 
+              fontSize: '0.95rem', lineHeight: '1.6', color: '#e5e7eb', whiteSpace: 'pre-wrap'
+            }}>
+              {selectedEmail.body || selectedEmail.snippet}
+            </div>
+            {selectedEmail.amount > 0 && (
+              <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>Detected Amount: <span style={{ color: 'var(--primary)' }}>₹{selectedEmail.amount.toLocaleString()}</span></span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes spin {

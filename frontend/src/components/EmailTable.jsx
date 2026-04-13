@@ -19,7 +19,7 @@ const categoryText = {
   Others: 'var(--text-muted)'
 };
 
-const EmailTable = ({ emails }) => {
+const EmailTable = ({ emails, onView }) => {
   return (
     <div className="glass card" style={{ overflowX: 'auto' }}>
       <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', fontWeight: 600 }}>Transactions & Activities</h3>
@@ -36,6 +36,7 @@ const EmailTable = ({ emails }) => {
             <th style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>Category</th>
             <th style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>Amount</th>
             <th style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>Date</th>
+            <th style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -64,6 +65,23 @@ const EmailTable = ({ emails }) => {
               </td>
               <td style={{ padding: '16px', color: 'var(--text-muted)' }}>
                 {new Date(email.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+              </td>
+              <td style={{ padding: '16px' }}>
+                <button 
+                  onClick={() => onView(email)}
+                  style={{ 
+                    background: 'var(--primary)', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '6px 12px', 
+                    borderRadius: '6px', 
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 600
+                  }}
+                >
+                  View Full
+                </button>
               </td>
             </tr>
           ))}
