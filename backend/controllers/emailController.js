@@ -49,7 +49,7 @@ const syncEmails = async (req, res) => {
     // Invalidate Cache (safe)
     if (redisClient.isReady) {
       try {
-        await redisClient.del(`stats:${userId}`);
+        await redisClient.del(`emails_data:${userId}`);
       } catch (err) {
         console.error('Redis delete error:', err);
       }
@@ -72,72 +72,76 @@ const getEmails = async (req, res) => {
   const startTime = Date.now();
   try {
     const { userId } = req.query;
-    const cacheKey = `stats:${userId}`;
+    const cacheKey = `emails_data:${userId}`;
 
-    // 1. Try to fetch from Cache (with safety check)
-    let stats = null;
-    let source = 'DB';
-    
+    // 1. Try to fetch FULL RESPONSE from Cache (Emails + Stats)
     if (redisClient.isReady) {
       try {
-        // Set a 1-second timeout for Redis
         const cachedData = await Promise.race([
           redisClient.get(cacheKey),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 1000))
         ]);
 
         if (cachedData) {
-          stats = JSON.parse(cachedData);
-          source = 'CACHE';
+          const result = JSON.parse(cachedData);
+          const totalDuration = Date.now() - startTime;
+          
+          // Log CACHE hit
+          await Telemetry.create({
+            userId,
+            operation: 'GET_EMAILS (CACHE)',
+            count: result.emails.length,
+            durationMs: totalDuration,
+            status: 'SUCCESS'
+          });
+
+          return res.json({ ...result, dbDuration: totalDuration, source: 'CACHE' });
         }
       } catch (err) {
-        console.error('Redis fetch error or timeout:', err.message);
+        console.error('Redis fetch error:', err.message);
       }
     }
 
+    // 2. Slow Path: Query MongoDB
     const emails = await Email.find({ userId }).sort({ date: -1 });
-    const dbDuration = Date.now() - startTime;
     
-    // 2. If no cache, calculate stats
-    if (!stats) {
-      stats = {
-        totalSpending: 0,
-        categoryBreakdown: {},
-        monthlyTrends: {},
-        topSenders: {}
-      };
+    const stats = {
+      totalSpending: 0,
+      categoryBreakdown: {},
+      monthlyTrends: {},
+      topSenders: {}
+    };
 
-      emails.forEach(email => {
-        stats.totalSpending += (email.amount || 0);
-        stats.categoryBreakdown[email.category] = (stats.categoryBreakdown[email.category] || 0) + (email.amount || 0);
-        const month = new Date(email.date).toLocaleString('default', { month: 'short', year: 'numeric' });
-        stats.monthlyTrends[month] = (stats.monthlyTrends[month] || 0) + (email.amount || 0);
-        const senderName = email.sender.split('<')[0].trim();
-        stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
-      });
+    emails.forEach(email => {
+      stats.totalSpending += (email.amount || 0);
+      stats.categoryBreakdown[email.category] = (stats.categoryBreakdown[email.category] || 0) + (email.amount || 0);
+      const month = new Date(email.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+      stats.monthlyTrends[month] = (stats.monthlyTrends[month] || 0) + (email.amount || 0);
+      const senderName = email.sender.split('<')[0].trim();
+      stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
+    });
 
-      // 3. Store in Cache for 1 hour (safe)
-      if (redisClient.isReady) {
-        try {
-          await redisClient.setEx(cacheKey, 3600, JSON.stringify(stats));
-        } catch (err) {
-          console.error('Redis store error:', err);
-        }
+    const totalDuration = Date.now() - startTime;
+
+    // 3. Store EVERYTHING in Cache for 10 minutes (shorter TTL for full data)
+    if (redisClient.isReady) {
+      try {
+        await redisClient.setEx(cacheKey, 600, JSON.stringify({ emails, stats }));
+      } catch (err) {
+        console.error('Redis store error:', err);
       }
     }
 
-    // Log performance to Telemetry
-    if (redisClient.isReady) {
-      await Telemetry.create({
-        userId,
-        operation: source === 'CACHE' ? 'GET_EMAILS (CACHE)' : 'GET_EMAILS (DB)',
-        count: emails.length,
-        durationMs: dbDuration,
-        status: 'SUCCESS'
-      });
-    }
+    // Log DB hit
+    await Telemetry.create({
+      userId,
+      operation: 'GET_EMAILS (DB)',
+      count: emails.length,
+      durationMs: totalDuration,
+      status: 'SUCCESS'
+    });
 
-    res.json({ emails, stats, dbDuration, source });
+    res.json({ emails, stats, dbDuration: totalDuration, source: 'DB' });
   } catch (error) {
     console.error('Fetch emails error:', error);
     res.status(500).json({ error: 'Failed to fetch emails' });
@@ -163,7 +167,7 @@ const reprocessEmails = async (req, res) => {
     // Invalidate Cache (safe)
     if (redisClient.isReady) {
       try {
-        await redisClient.del(`stats:${userId}`);
+        await redisClient.del(`emails_data:${userId}`);
       } catch (err) {
         console.error('Redis delete error:', err);
       }
