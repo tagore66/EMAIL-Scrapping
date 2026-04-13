@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
-import EmailTable from '../components/EmailTable';
-import { DollarSign, Mail, PieChart, Activity, RefreshCcw, Database, Filter, Calendar } from 'lucide-react';
+import { DollarSign, Mail, PieChart, Activity, RefreshCcw, Database } from 'lucide-react';
 import { getEmails, syncEmails, reprocessEmails } from '../services/api';
 
 const Dashboard = () => {
@@ -11,9 +10,6 @@ const Dashboard = () => {
   const [syncing, setSyncing] = useState(false);
   const [emails, setEmails] = useState([]);
   const [stats, setStats] = useState(null);
-  const [filteredEmails, setFilteredEmails] = useState([]);
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [selectedEmail, setSelectedEmail] = useState(null);
   const [dbTime, setDbTime] = useState(0);
   const [dataSource, setDataSource] = useState('DB');
   const userId = localStorage.getItem('userId');
@@ -22,7 +18,6 @@ const Dashboard = () => {
     try {
       const emailsRes = await getEmails(userId);
       setEmails(emailsRes.data.emails);
-      setFilteredEmails(emailsRes.data.emails);
       setStats(emailsRes.data.stats);
       setDbTime(emailsRes.data.dbDuration);
       setDataSource(emailsRes.data.source || 'DB');
@@ -36,14 +31,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (userId) fetchData();
   }, [userId]);
-
-  useEffect(() => {
-    if (categoryFilter === 'All') {
-      setFilteredEmails(emails);
-    } else {
-      setFilteredEmails(emails.filter(e => e.category === categoryFilter));
-    }
-  }, [categoryFilter, emails]);
 
   const handleSync = async () => {
     setSyncing(true);
@@ -222,103 +209,10 @@ const Dashboard = () => {
           </div>
         )}
 
-        <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
-            <div style={{ display: 'flex', gap: '12px' }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                 <Filter size={14} />
-                 <select 
-                   value={categoryFilter} 
-                   onChange={(e) => setCategoryFilter(e.target.value)}
-                   style={{ background: 'transparent', border: 'none', color: 'var(--text)', outline: 'none', cursor: 'pointer' }}
-                 >
-                   <option value="All">All Categories</option>
-                   <option value="Shopping">Shopping</option>
-                   <option value="Food">Food</option>
-                   <option value="Travel">Travel</option>
-                   <option value="Bills">Bills</option>
-                   <option value="Subscriptions">Subscriptions</option>
-                   <option value="Others">Others</option>
-                 </select>
-               </div>
-            </div>
-          </div>
-          <EmailTable emails={filteredEmails} onViewEmail={(email) => setSelectedEmail(email)} />
+        <div style={{ padding: '0 0 40px 0' }}>
+          {/* Bottom spacer or secondary info could go here */}
         </div>
       </main>
-
-      {/* Email View Modal */}
-      {selectedEmail && (
-        <div 
-          onClick={() => setSelectedEmail(null)} // Click outside to close
-          style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 9999, padding: '20px'
-          }}
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-            className="card shadow-2xl" 
-            style={{
-            maxWidth: '800px', width: '100%', maxHeight: '85vh', 
-            display: 'flex', flexDirection: 'column',
-            padding: '0', position: 'relative', border: '1px solid var(--border)',
-            overflow: 'hidden', backgroundColor: 'var(--bg-dark)'
-          }}>
-            {/* Modal Header */}
-            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(255,255,255,0.01)' }}>
-               <button 
-                onClick={() => setSelectedEmail(null)}
-                style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', height: '32px', width: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >✕</button>
-              <span style={{ 
-                fontSize: '0.7rem', 
-                background: 'var(--primary)', 
-                color: 'white',
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontWeight: 700, 
-                textTransform: 'uppercase',
-                letterSpacing: '1px'
-              }}>
-                {selectedEmail.category}
-              </span>
-              <h2 style={{ fontSize: '1.25rem', marginTop: '12px', marginBottom: '4px', lineHeight: 1.3 }}>{selectedEmail.subject}</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>From: <span style={{ color: 'var(--text-main)' }}>{selectedEmail.sender}</span></p>
-            </div>
-
-            {/* Modal Content */}
-            <div style={{ 
-              padding: '32px', 
-              overflowY: 'auto', 
-              fontSize: '0.95rem', 
-              lineHeight: '1.7', 
-              color: '#cbd5e1', 
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word', // CRITICAL FIX: prevents long URLs from stretching the modal
-              flex: 1,
-              backgroundColor: 'rgba(0,0,0,0.2)'
-            }} className="custom-scrollbar">
-              {selectedEmail.body || selectedEmail.snippet}
-            </div>
-
-            {/* Modal Footer */}
-            <div style={{ padding: '20px 32px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.01)' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Received on: {new Date(selectedEmail.date).toLocaleString()}
-              </div>
-              {selectedEmail.amount > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>₹{selectedEmail.amount.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes pulse-green {

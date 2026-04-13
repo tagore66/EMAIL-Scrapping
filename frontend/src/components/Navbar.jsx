@@ -62,6 +62,7 @@ const Navbar = () => {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
         <Link to="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem' }}>Dashboard</Link>
+        <Link to="/inbox" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem' }}>Inbox</Link>
         <Link to="/telemetry" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem' }}>Telemetry</Link>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
