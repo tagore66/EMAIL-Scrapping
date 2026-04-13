@@ -1,3 +1,4 @@
+// Version: 1.0.5 - Performance Update
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
