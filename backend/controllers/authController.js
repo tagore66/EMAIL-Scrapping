@@ -1,4 +1,4 @@
-const { oauth2Client, SCOPES } = require('../config/googleConfig');
+const { oauth2Client, createOAuthClient, SCOPES } = require('../config/googleConfig');
 const User = require('../models/User');
 const axios = require('axios');
 
@@ -13,9 +13,10 @@ const getAuthUrl = (req, res) => {
 
 const googleCallback = async (req, res) => {
   const { code } = req.query;
+  const client = createOAuthClient();
   try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
 
     // Get user info
     const userInfo = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {

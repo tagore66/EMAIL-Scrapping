@@ -1,9 +1,10 @@
 const { google } = require('googleapis');
-const { oauth2Client } = require('../config/googleConfig');
+const { createOAuthClient } = require('../config/googleConfig');
 
 const getGmailClient = (accessToken) => {
-  oauth2Client.setCredentials({ access_token: accessToken });
-  return google.gmail({ version: 'v1', auth: oauth2Client });
+  const client = createOAuthClient();
+  client.setCredentials({ access_token: accessToken });
+  return google.gmail({ version: 'v1', auth: client });
 };
 
 const fetchEmailList = async (gmail, maxResults = 20) => {

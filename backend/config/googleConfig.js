@@ -13,4 +13,12 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly'
 ];
 
-module.exports = { oauth2Client, SCOPES };
+const createOAuthClient = () => {
+  return new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
+};
+
+module.exports = { oauth2Client, createOAuthClient, SCOPES };
