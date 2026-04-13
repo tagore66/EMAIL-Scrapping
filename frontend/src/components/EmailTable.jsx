@@ -19,7 +19,7 @@ const categoryText = {
   Others: 'var(--text-muted)'
 };
 
-const EmailTable = ({ emails, onView }) => {
+const EmailTable = ({ emails, onViewEmail }) => {
   return (
     <div className="glass card" style={{ overflowX: 'auto' }}>
       <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', fontWeight: 600 }}>Transactions & Activities</h3>
@@ -68,7 +68,7 @@ const EmailTable = ({ emails, onView }) => {
               </td>
               <td style={{ padding: '16px' }}>
                 <button 
-                  onClick={() => onView(email)}
+                  onClick={() => onViewEmail(email)}
                   style={{ 
                     background: 'var(--primary)', 
                     color: 'white', 

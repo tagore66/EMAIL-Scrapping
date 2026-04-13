@@ -145,19 +145,25 @@ const Dashboard = () => {
                </div>
             </div>
           </div>
-          <EmailTable emails={filteredEmails} onView={(email) => setSelectedEmail(email)} />
+          <EmailTable emails={filteredEmails} onViewEmail={(email) => setSelectedEmail(email)} />
         </div>
       </main>
 
       {/* Email View Modal */}
       {selectedEmail && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: '20px'
-        }}>
-          <div className="card shadow-2xl" style={{
+        <div 
+          onClick={() => setSelectedEmail(null)} // Click outside to close
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999, padding: '20px'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+            className="card shadow-2xl" 
+            style={{
             maxWidth: '800px', width: '100%', maxHeight: '85vh', 
             display: 'flex', flexDirection: 'column',
             padding: '0', position: 'relative', border: '1px solid var(--border)',
