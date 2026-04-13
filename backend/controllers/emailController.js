@@ -59,9 +59,11 @@ const syncEmails = async (req, res) => {
 };
 
 const getEmails = async (req, res) => {
+  const startTime = Date.now();
   try {
     const { userId } = req.query;
     const emails = await Email.find({ userId }).sort({ date: -1 });
+    const dbDuration = Date.now() - startTime;
     
     // Calculate Analytics Summary
     const stats = {
@@ -72,23 +74,26 @@ const getEmails = async (req, res) => {
     };
 
     emails.forEach(email => {
-      // Total Spending
       stats.totalSpending += (email.amount || 0);
-
-      // Category Breakdown
       stats.categoryBreakdown[email.category] = (stats.categoryBreakdown[email.category] || 0) + (email.amount || 0);
-
-      // Monthly Trends
       const month = new Date(email.date).toLocaleString('default', { month: 'short', year: 'numeric' });
       stats.monthlyTrends[month] = (stats.monthlyTrends[month] || 0) + (email.amount || 0);
-
-      // Top Senders
       const senderName = email.sender.split('<')[0].trim();
       stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
     });
 
-    res.json({ emails, stats });
+    // Log performance to Telemetry
+    await Telemetry.create({
+      userId,
+      operation: 'GET_EMAILS',
+      count: emails.length,
+      durationMs: dbDuration,
+      status: 'SUCCESS'
+    });
+
+    res.json({ emails, stats, dbDuration });
   } catch (error) {
+    console.error('Fetch emails error:', error);
     res.status(500).json({ error: 'Failed to fetch emails' });
   }
 };

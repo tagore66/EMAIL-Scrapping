@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [filteredEmails, setFilteredEmails] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [selectedEmail, setSelectedEmail] = useState(null);
+  const [dbTime, setDbTime] = useState(0);
   const userId = localStorage.getItem('userId');
 
   const fetchData = async () => {
@@ -21,6 +22,7 @@ const Dashboard = () => {
       setEmails(emailsRes.data.emails);
       setFilteredEmails(emailsRes.data.emails);
       setStats(emailsRes.data.stats);
+      setDbTime(emailsRes.data.dbDuration);
     } catch (error) {
       console.error('Fetch error:', error);
     } finally {
@@ -125,7 +127,14 @@ const Dashboard = () => {
 
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
+              {dbTime > 0 && (
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.03)', padding: '2px 8px', borderRadius: '4px' }}>
+                  Query took {dbTime}ms
+                </span>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: '12px' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                  <Filter size={14} />
