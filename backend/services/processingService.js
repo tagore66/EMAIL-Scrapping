@@ -1,17 +1,16 @@
 const cheerio = require('cheerio');
 
 const categories = {
-  Shopping: ['order', 'amazon', 'purchase', 'shipping', 'delivery', 'receipt', 'invoice', 'cart', 'buy'],
-  Food: ['swiggy', 'zomato', 'uber eats', 'restaurant', 'food', 'meal', 'pizza', 'burger', 'delivery'],
-  Travel: ['flight', 'airline', 'hotel', 'booking', 'ticket', 'reservation', 'expedia', 'airbnb', 'train', 'irctc'],
-  Work: ['zoom', 'teams', 'slack', 'jira', 'confluence', 'meeting', 'calendar', 'document', 'project'],
-  Finance: ['bank', 'credit card', 'debit card', 'transaction', 'payment', 'paid', 'statement', 'investment', 'stock'],
+  Shopping: ['order', 'amazon', 'purchase', 'shipping', 'delivery', 'receipt', 'invoice', 'cart', 'buy', 'flipkart', 'myntra', 'ajio'],
+  Food: ['swiggy', 'zomato', 'uber eats', 'restaurant', 'food', 'meal', 'pizza', 'burger', 'delivery', 'starbucks', 'kfc'],
+  Travel: ['flight', 'airline', 'hotel', 'booking', 'ticket', 'reservation', 'expedia', 'airbnb', 'train', 'irctc', 'uber', 'ola', 'indigo', 'vistara'],
+  Bills: ['bill', 'electricity', 'water', 'gas', 'due', 'utility', 'payment due', 'invoice', 'internet', 'broadband', 'recharge', 'mobile bill'],
+  Subscriptions: ['subscription', 'netflix', 'spotify', 'prime', 'membership', 'renew', 'renewal', 'monthly plan', 'yearly plan', 'youtube premium']
 };
 
 const cleanText = (html) => {
   if (!html) return '';
   const $ = cheerio.load(html);
-  // Remove scripts and styles
   $('script, style').remove();
   let text = $('body').text() || html;
   return text.replace(/\s+/g, ' ').trim();
@@ -30,16 +29,24 @@ const categorizeEmail = (subject, body) => {
 };
 
 const extractAmount = (text) => {
-  // Simple regex for amounts like $100.00, Rs. 500, INR 1000, 50.00 USD
-  const amountRegex = /(?:\$|Rs\.|INR|€|£)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)|(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:USD|INR|EUR|GBP)/gi;
+  // Enhanced regex for amounts like ₹500, $100.00, Rs. 500, INR 1000, etc.
+  // Supports commas and decimals
+  const amountRegex = /(?:₹|\$|Rs\.|INR|€|£)\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/gi;
   const matches = [...text.matchAll(amountRegex)];
   
   if (matches.length > 0) {
-    // Return the first match or logic to find the largest/most relevant
-    const val = matches[0][1] || matches[0][2];
-    return parseFloat(val.replace(/,/g, ''));
+    // Try to find the amount that looks most like a total (often the largest or last one in simple contexts)
+    // For now, let's pick the largest value found to avoid picking up small tax amounts if possible
+    const values = matches.map(m => parseFloat(m[1].replace(/,/g, '')));
+    return Math.max(...values);
   }
   
+  // Secondary check for "Amount: 500" or equivalent patterns
+  const textMatches = text.match(/(?:amount|total|paid|price|cost)\s*(?::|is)?\s*(?:₹|\$|Rs\.|INR)?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
+  if (textMatches) {
+    return parseFloat(textMatches[1].replace(/,/g, ''));
+  }
+
   return 0;
 };
 

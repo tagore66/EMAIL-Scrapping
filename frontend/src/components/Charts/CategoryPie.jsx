@@ -5,9 +5,8 @@ const COLORS = ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#94a3b8'
 
 const CategoryPie = ({ data }) => {
   return (
-    <div className="glass card" style={{ height: '350px', width: '100%' }}>
-      <h3 style={{ marginBottom: '24px', fontSize: '1.1rem', fontWeight: 600 }}>Category Distribution</h3>
-      <ResponsiveContainer width="100%" height="85%">
+    <div style={{ height: '300px', width: '100%' }}>
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
@@ -16,7 +15,7 @@ const CategoryPie = ({ data }) => {
             innerRadius={60}
             outerRadius={80}
             paddingAngle={5}
-            dataKey="count"
+            dataKey="value"
             nameKey="_id"
           >
             {data.map((entry, index) => (
@@ -24,17 +23,19 @@ const CategoryPie = ({ data }) => {
             ))}
           </Pie>
           <Tooltip 
+            formatter={(value) => [`₹${value.toLocaleString()}`, 'Total']}
             contentStyle={{ 
               backgroundColor: 'var(--bg-dark)', 
               borderColor: 'var(--border)', 
               borderRadius: '8px',
-              color: 'var(--text-main)' 
+              color: 'var(--text-main)',
+              fontSize: '12px'
             }} 
           />
           <Legend 
             verticalAlign="bottom" 
             align="center"
-            wrapperStyle={{ paddingTop: '20px' }}
+            wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }}
           />
         </PieChart>
       </ResponsiveContainer>

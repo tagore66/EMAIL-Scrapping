@@ -60,11 +60,60 @@ const syncEmails = async (req, res) => {
 
 const getEmails = async (req, res) => {
   try {
-    const emails = await Email.find({ userId: req.query.userId }).sort({ date: -1 });
-    res.json(emails);
+    const { userId } = req.query;
+    const emails = await Email.find({ userId }).sort({ date: -1 });
+    
+    // Calculate Analytics Summary
+    const stats = {
+      totalSpending: 0,
+      categoryBreakdown: {},
+      monthlyTrends: {},
+      topSenders: {}
+    };
+
+    emails.forEach(email => {
+      // Total Spending
+      stats.totalSpending += (email.amount || 0);
+
+      // Category Breakdown
+      stats.categoryBreakdown[email.category] = (stats.categoryBreakdown[email.category] || 0) + (email.amount || 0);
+
+      // Monthly Trends
+      const month = new Date(email.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+      stats.monthlyTrends[month] = (stats.monthlyTrends[month] || 0) + (email.amount || 0);
+
+      // Top Senders
+      const senderName = email.sender.split('<')[0].trim();
+      stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
+    });
+
+    res.json({ emails, stats });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch emails' });
   }
 };
 
-module.exports = { syncEmails, getEmails };
+const reprocessEmails = async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const emails = await Email.find({ userId });
+    let updatedCount = 0;
+
+    for (const email of emails) {
+      const category = categorizeEmail(email.subject, email.body || email.snippet);
+      const amount = extractAmount(email.body || email.snippet);
+      
+      email.category = category;
+      email.amount = amount;
+      await email.save();
+      updatedCount++;
+    }
+
+    res.json({ message: 'Reprocessing complete', updatedCount });
+  } catch (error) {
+    console.error('Reprocess error:', error);
+    res.status(500).json({ error: 'Reprocessing failed' });
+  }
+};
+
+module.exports = { syncEmails, getEmails, reprocessEmails };

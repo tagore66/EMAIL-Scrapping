@@ -3,9 +3,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const OverviewChart = ({ data }) => {
   return (
-    <div className="glass card" style={{ height: '350px', width: '100%' }}>
-      <h3 style={{ marginBottom: '24px', fontSize: '1.1rem', fontWeight: 600 }}>Spending Trends</h3>
-      <ResponsiveContainer width="100%" height="85%">
+    <div style={{ height: '300px', width: '100%' }}>
+      <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -26,14 +25,16 @@ const OverviewChart = ({ data }) => {
             fontSize={12} 
             tickLine={false} 
             axisLine={false} 
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => `₹${value}`}
           />
           <Tooltip 
+            formatter={(value) => [`₹${value.toLocaleString()}`, 'Total Spent']}
             contentStyle={{ 
               backgroundColor: 'var(--bg-dark)', 
               borderColor: 'var(--border)', 
               borderRadius: '8px',
-              color: 'var(--text-main)' 
+              color: 'var(--text-main)',
+              fontSize: '12px'
             }} 
           />
           <Area 

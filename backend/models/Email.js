@@ -11,7 +11,7 @@ const emailSchema = new mongoose.Schema({
   snippet: { type: String },
   category: { 
     type: String, 
-    enum: ['Shopping', 'Food', 'Travel', 'Work', 'Finance', 'Others'],
+    enum: ['Shopping', 'Food', 'Travel', 'Bills', 'Subscriptions', 'Others'],
     default: 'Others'
   },
   amount: { type: Number, default: 0 },
