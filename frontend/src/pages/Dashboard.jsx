@@ -153,33 +153,64 @@ const Dashboard = () => {
       {selectedEmail && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backgroundColor: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000, padding: '20px'
         }}>
-          <div className="glass card" style={{
-            maxWidth: '800px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
-            padding: '32px', position: 'relative', border: '1px solid var(--border)'
+          <div className="card shadow-2xl" style={{
+            maxWidth: '800px', width: '100%', maxHeight: '85vh', 
+            display: 'flex', flexDirection: 'column',
+            padding: '0', position: 'relative', border: '1px solid var(--border)',
+            overflow: 'hidden', backgroundColor: 'var(--bg-dark)'
           }}>
-            <button 
-              onClick={() => setSelectedEmail(null)}
-              style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
-            >✕</button>
-            <div style={{ marginBottom: '24px' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase' }}>{selectedEmail.category}</span>
-              <h2 style={{ fontSize: '1.4rem', marginTop: '4px' }}>{selectedEmail.subject}</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>From: {selectedEmail.sender}</p>
+            {/* Modal Header */}
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(255,255,255,0.01)' }}>
+               <button 
+                onClick={() => setSelectedEmail(null)}
+                style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', height: '32px', width: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >✕</button>
+              <span style={{ 
+                fontSize: '0.7rem', 
+                background: 'var(--primary)', 
+                color: 'white',
+                padding: '4px 10px',
+                borderRadius: '4px',
+                fontWeight: 700, 
+                textTransform: 'uppercase',
+                letterSpacing: '1px'
+              }}>
+                {selectedEmail.category}
+              </span>
+              <h2 style={{ fontSize: '1.25rem', marginTop: '12px', marginBottom: '4px', lineHeight: 1.3 }}>{selectedEmail.subject}</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>From: <span style={{ color: 'var(--text-main)' }}>{selectedEmail.sender}</span></p>
             </div>
+
+            {/* Modal Content */}
             <div style={{ 
-              backgroundColor: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', 
-              fontSize: '0.95rem', lineHeight: '1.6', color: '#e5e7eb', whiteSpace: 'pre-wrap'
-            }}>
+              padding: '32px', 
+              overflowY: 'auto', 
+              fontSize: '0.95rem', 
+              lineHeight: '1.7', 
+              color: '#cbd5e1', 
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word', // CRITICAL FIX: prevents long URLs from stretching the modal
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.2)'
+            }} className="custom-scrollbar">
               {selectedEmail.body || selectedEmail.snippet}
             </div>
-            {selectedEmail.amount > 0 && (
-              <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
-                <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>Detected Amount: <span style={{ color: 'var(--primary)' }}>₹{selectedEmail.amount.toLocaleString()}</span></span>
+
+            {/* Modal Footer */}
+            <div style={{ padding: '20px 32px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.01)' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Received on: {new Date(selectedEmail.date).toLocaleString()}
               </div>
-            )}
+              {selectedEmail.amount > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>₹{selectedEmail.amount.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -191,6 +222,19 @@ const Dashboard = () => {
         }
         .animate-spin {
           animation: spin 1s linear infinite;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0,0,0,0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: var(--border);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: var(--primary);
         }
       `}</style>
     </div>
