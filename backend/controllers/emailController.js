@@ -46,11 +46,13 @@ const syncEmails = async (req, res) => {
       status: 'SUCCESS'
     });
 
-    // Invalidate Cache
-    try {
-      await redisClient.del(`stats:${userId}`);
-    } catch (err) {
-      console.error('Redis delete error:', err);
+    // Invalidate Cache (safe)
+    if (redisClient.isReady) {
+      try {
+        await redisClient.del(`stats:${userId}`);
+      } catch (err) {
+        console.error('Redis delete error:', err);
+      }
     }
 
     res.json({ message: 'Sync complete', processedCount });
@@ -72,18 +74,25 @@ const getEmails = async (req, res) => {
     const { userId } = req.query;
     const cacheKey = `stats:${userId}`;
 
-    // 1. Try to fetch from Cache
+    // 1. Try to fetch from Cache (with safety check)
     let stats = null;
     let source = 'DB';
     
-    try {
-      const cachedData = await redisClient.get(cacheKey);
-      if (cachedData) {
-        stats = JSON.parse(cachedData);
-        source = 'CACHE';
+    if (redisClient.isReady) {
+      try {
+        // Set a 1-second timeout for Redis
+        const cachedData = await Promise.race([
+          redisClient.get(cacheKey),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 1000))
+        ]);
+
+        if (cachedData) {
+          stats = JSON.parse(cachedData);
+          source = 'CACHE';
+        }
+      } catch (err) {
+        console.error('Redis fetch error or timeout:', err.message);
       }
-    } catch (err) {
-      console.error('Redis fetch error:', err);
     }
 
     const emails = await Email.find({ userId }).sort({ date: -1 });
@@ -107,11 +116,13 @@ const getEmails = async (req, res) => {
         stats.topSenders[senderName] = (stats.topSenders[senderName] || 0) + 1;
       });
 
-      // 3. Store in Cache for 1 hour
-      try {
-        await redisClient.setEx(cacheKey, 3600, JSON.stringify(stats));
-      } catch (err) {
-        console.error('Redis store error:', err);
+      // 3. Store in Cache for 1 hour (safe)
+      if (redisClient.isReady) {
+        try {
+          await redisClient.setEx(cacheKey, 3600, JSON.stringify(stats));
+        } catch (err) {
+          console.error('Redis store error:', err);
+        }
       }
     }
 
@@ -147,11 +158,13 @@ const reprocessEmails = async (req, res) => {
       updatedCount++;
     }
 
-    // Invalidate Cache
-    try {
-      await redisClient.del(`stats:${userId}`);
-    } catch (err) {
-      console.error('Redis delete error:', err);
+    // Invalidate Cache (safe)
+    if (redisClient.isReady) {
+      try {
+        await redisClient.del(`stats:${userId}`);
+      } catch (err) {
+        console.error('Redis delete error:', err);
+      }
     }
 
     res.json({ message: 'Reprocessing complete', updatedCount });
