@@ -8,6 +8,9 @@ import CategoryPie from '../components/Charts/CategoryPie';
 import OverviewChart from '../components/Charts/OverviewChart';
 
 const Dashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [emails, setEmails] = useState([]);
   const [stats, setStats] = useState(null);
   const [filteredEmails, setFilteredEmails] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState('All');
