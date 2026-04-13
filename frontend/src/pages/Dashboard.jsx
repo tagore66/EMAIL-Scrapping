@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
 import EmailTable from '../components/EmailTable';
 import { DollarSign, Mail, PieChart, Activity, RefreshCcw, Database, Filter, Calendar } from 'lucide-react';
-import { getAnalytics, getEmails, syncEmails, reprocessEmails } from '../services/api';
+import { getEmails, syncEmails, reprocessEmails } from '../services/api';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
