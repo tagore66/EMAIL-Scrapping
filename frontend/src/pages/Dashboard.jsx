@@ -116,16 +116,36 @@ const Dashboard = () => {
               onClick={handleReprocess} 
               disabled={syncing}
               className="glass"
-              style={{ height: '40px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px', borderRadius: '8px', border: '1px solid var(--border)', cursor: 'pointer' }}
+              style={{ 
+                height: '40px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                padding: '0 16px', 
+                borderRadius: '8px', 
+                border: '1px solid var(--border)', 
+                cursor: syncing ? 'not-allowed' : 'pointer',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                opacity: syncing ? 0.5 : 1
+              }}
             >
-              <Database size={16} />
+              <Database size={16} color="var(--primary)" />
               Reprocess
             </button>
             <button 
               onClick={handleSync} 
               disabled={syncing}
               className="btn-primary"
-              style={{ height: '40px' }}
+              style={{ 
+                height: '40px',
+                color: '#020617', // Dark text on bright cyan background
+                fontWeight: 700,
+                border: 'none',
+                cursor: syncing ? 'not-allowed' : 'pointer',
+                opacity: syncing ? 0.7 : 1
+              }}
             >
               <RefreshCcw size={16} className={syncing ? 'animate-spin' : ''} />
               {syncing ? 'Syncing...' : 'Sync Data'}
