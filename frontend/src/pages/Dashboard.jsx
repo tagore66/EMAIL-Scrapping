@@ -161,6 +161,67 @@ const Dashboard = () => {
           />
         </section>
 
+        {/* Visual Analytics */}
+        {stats && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '40px' }}>
+            <div className="card glass" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                <PieChart size={20} color="var(--primary)" />
+                <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Spending Insights</h3>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                {Object.entries(stats.categoryBreakdown)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([category, amount]) => {
+                    const percentage = (amount / stats.totalSpending) * 100;
+                    return (
+                      <div key={category}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '6px' }}>
+                          <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{category}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>₹{amount.toLocaleString('en-IN')} ({percentage.toFixed(0)}%)</span>
+                        </div>
+                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ 
+                            height: '100%', 
+                            width: `${percentage}%`, 
+                            background: 'linear-gradient(90deg, var(--primary), #8b5cf6)',
+                            boxShadow: '0 0 10px rgba(34, 211, 238, 0.2)'
+                          }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            <div className="card glass" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                <Activity size={20} color="#8b5cf6" />
+                <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Top Merchant Sources</h3>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {Object.entries(stats.topSenders)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 10)
+                  .map(([sender, count]) => (
+                    <div key={sender} style={{ 
+                      padding: '10px 16px', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>{sender}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{count} items</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Intelligence Logs</h3>
